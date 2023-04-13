@@ -29,17 +29,17 @@ const mensagens = [
 
 // - [GET] / mensagens - retorna a lista de mensagens
 app.get('/mensagens', (req, res) => {
-    res.send(mensagens);
+    res.send(mensagens.filter(Boolean));
 });
  
 //  - [GET] /mensagens/{id} - Retorna apenas uma única mensagem pelo ID
 app.get('/mensagens/:id', (req, res) => {
-    const id = req.params.id;
+    const id = req.params.id - 1;
     const mensagem = mensagens[id];
 });
 
 // - [POST] /mensagens - Cria uma nova mensagem
-app.post('/mensagens', (req, res) => {
+app.post('/mensagem', (req, res) => {
     const mensagem = req.body.mensagem;
 
     mensagens.push(mensagem);
@@ -48,7 +48,7 @@ app.post('/mensagens', (req, res) => {
 });
 
 //- [PUT] /mensagens - Atualiza uma mensagem pelo ID 
-app.put('/mensagens/:id', (req, res) => {
+app.put('/mensagem/:id', (req, res) => {
     const id = req.params.id - 1;
 
     const mensagem = req.body.mensagem;
@@ -57,6 +57,16 @@ app.put('/mensagens/:id', (req, res) => {
 
     res.send(`Mensagem atualizada com sucesso: ${mensagem}.`);
 });
+
+// - [DELETE] /mensagens/{id} - Remover uma mensagem pelo ID
+app.delete('/mensagem/:id', (req, res) => {
+    const id = req.params.id - 1;
+
+    delete mensagens[id];
+
+    res.send('Menasagem removida com sucesso.')
+})
+
 
 app.listen(port, () => {
     console.info(`App rodando em http://localhost:${port}`);
