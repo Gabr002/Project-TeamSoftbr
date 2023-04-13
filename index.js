@@ -16,15 +16,23 @@ Lista de Endpoints da aplicacação
 CRUD: Create, Read (Single & All), Update and Delete
 CRUD: Criar, Ler (Individual e Tudo), Update And DELETE
 - [GET] /mensagens - Retorna a lista de mensagens
-- [GET] /mensagens/{id} - REtorna apenas uma única mensagem pelo ID
+- [GET] /mensagens/{id} - Retorna apenas uma única mensagem pelo ID
 - [POST] /mensagens - Cria uma nova mensagem
 - [PUT] /mensagens - Atualiza uma mensagem pelo ID 
 - [DELETE] /mensagens/{id} - Remover uma mensagem pelo ID
 */
 
+
+// Listas de objetos
 const mensagens = [
-    "Essa é a primeira mensagem",
-    "Essa é a segunda mensagem"
+    {
+    "id": 1,
+    "texto": "Essa é a primeira mensagem",
+    },
+    {
+        "id": 2,
+        "Texto": "Está é minha segunda mensagem"
+    }
 ];
 
 // - [GET] / mensagens - retorna a lista de mensagens
@@ -36,26 +44,45 @@ app.get('/mensagens', (req, res) => {
 app.get('/mensagens/:id', (req, res) => {
     const id = req.params.id - 1;
     const mensagem = mensagens[id];
+
+    if(!mensagem){
+        res.send('mensagem não encontrada.');
+
+        return;
+    }
+
+    res.send(mensagem);
 });
 
 // - [POST] /mensagens - Cria uma nova mensagem
 app.post('/mensagem', (req, res) => {
-    const mensagem = req.body.mensagem;
+    const mensagem = req.body;
 
+    if(!mensagem || !mensagem.texto){
+        res.send('mensagem invalida');
+
+        return;
+    }
+    mensagem.id = mensagens.length;
     mensagens.push(mensagem);
 
-    res.send(`mensagem criada com sucesso: '${mensagem}'.`);
+    res.send(mensagem);
 });
 
 //- [PUT] /mensagens - Atualiza uma mensagem pelo ID 
 app.put('/mensagem/:id', (req, res) => {
     const id = req.params.id - 1;
 
-    const mensagem = req.body.mensagem;
+    const mensagem = mensagens[id];
 
-    mensagens[id] = mensagem;
+    const novoTexto = req.body.texto;
 
-    res.send(`Mensagem atualizada com sucesso: ${mensagem}.`);
+    if(!novoTexto) {
+        res.send('Mensagem inválida.');
+    }
+    mensagem.texto = novoTexto;
+
+    res.send(mensagem);
 });
 
 // - [DELETE] /mensagens/{id} - Remover uma mensagem pelo ID
