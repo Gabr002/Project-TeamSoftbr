@@ -1,116 +1,92 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const Client = require('./models/client');
 
 const app = express();
 
-const port = 3000;
-
 app.use(bodyParser.json());
 
-app.get('/hello', (req, res) => {
-    res.send("Hello, World!");
+// Lista todos os clientes
+app.get('/', async (req, res) => {
+  try {
+    const clients = await Client.find();
+    res.json(clients);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 });
 
-/* 
-Lista de Endpoints da aplicacação
-CRUD: Create, Read (Single & All), Update and Delete
-CRUD: Criar, Ler (Individual e Tudo), Update And DELETE
-- [GET] /mensagens - Retorna a lista de mensagens
-- [GET] /mensagens/{id} - Retorna apenas uma única mensagem pelo ID
-- [POST] /mensagens - Cria uma nova mensagem
-- [PUT] /mensagens - Atualiza uma mensagem pelo ID 
-- [DELETE] /mensagens/{id} - Remover uma mensagem pelo ID
-*/
+// Cria um novo cliente
+app.post('/', async (req, res) => {
+  const client = new Client({
+    cnpj: req.body.cnpj,
+    razaoSocial: req.body.razaoSocial,
+    nomeContato: req.body.nomeContato,
+    telefone: req.body.telefone,
+    enderecos: req.body.enderecos
+  });
 
+  try {
+    const newClient = await client.save();
+    res.status(201).json(newClient);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
 
-// Listas de objetos
-const mensagens = [
-    {
-    "id": 1,
-    "texto": "Essa é a primeira mensagem",
-    },
-    {
-        "id": 2,
-        "Texto": "Está é minha segunda mensagem"
+// Lista um cliente específico
+app.get('/:id', getClient, (req, res) => {
+  res.json(res.client);
+});
+
+// Atualiza um cliente
+app.put('/:id', getClient, async (req, res) => {
+  if (req.body.cnpj != null) {
+    res.client.cnpj = req.body.cnpj;
+  }
+  if (req.body.razaoSocial != null) {
+    res.client.razaoSocial = req.body.razaoSocial;
+  }
+  if (req.body.nomeContato != null) {
+    res.client.nomeContato = req.body.nomeContato;
+  }
+  if (req.body.telefone != null) {
+    res.client.telefone = req.body.telefone;
+  }
+  if (req.body.enderecos != null) {
+    res.client.enderecos = req.body.enderecos;
+  }
+  try {
+    const updatedClient = await res.client.save();
+    res.json(updatedClient);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// Remove um cliente
+app.delete('/:id', getClient, async (req, res) => {
+  try {
+    await res.client.remove();
+    res.json({ message: 'Cliente removido com sucesso!' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+async function getClient(req, res, next) {
+  let client;
+  try {
+    client = await Client.findById(req.params.id);
+    if (client == null) {
+      return res.status(404).json({ message: 'Cliente não encontrado' });
     }
-];
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
 
-const getMensagensValidas = () => mensagens.filter(Boolean);
+  res.client = client;
+  next();
+}
 
-const getMensagemById = id => getMensagensValidas().find(msg => msg.id === id);
-
-// - [GET] / mensagens - retorna a lista de mensagens
-app.get('/mensagens', (req, res) => {
-    res.send(getMensagensValidas());
-});
- 
-//  - [GET] /mensagens/{id} - Retorna apenas uma única mensagem pelo ID
-app.get('/mensagens/:id', (req, res) => {
-    const id = +req.params.id;
-
-    const mensagem = getMensagemById(id);
-
-    if(!mensagem){
-        res.send('mensagem não encontrada.');
-
-        return;
-    }
-
-    res.send(mensagem);
-});
-
-// - [POST] /mensagens - Cria uma nova mensagem
-app.post('/mensagem', (req, res) => {
-    const mensagem = req.body;
-
-    if(!mensagem || !mensagem.texto){
-        res.send('mensagem invalida');
-
-        return;
-    }
-
-    mensagem.id = mensagens.length + 1;
-    mensagens.push(mensagem);
-
-    res.send(mensagem);
-});
-
-//- [PUT] /mensagens - Atualiza uma mensagem pelo ID 
-app.put('/mensagem/:id', (req, res) => {
-    const id = +req.params.id;
-
-    const mensagem = mensagens.find(msg => msg.id === id);
-
-    const novoTexto = req.body.texto;
-
-    if(!novoTexto) {
-        res.send('Mensagem inválida.');
-    }
-    mensagem.texto = novoTexto;
-
-    res.send(mensagem);
-});
-
-// - [DELETE] /mensagens/{id} - Remover uma mensagem pelo ID
-app.delete('/mensagem/:id', (req, res) => {
-    const id = +req.params.id;
-
-    const mensagem = getMensagemById(id);
-
-    if(!mensagem){
-        res.send('Mensagem não encontrada.');
-
-        return;
-    }
-
-    const index = mensagens.indexOf(mensagem);
-
-    delete mensagens[index];
-
-    res.send('Menasagem removida com sucesso.');
-})
-
-
-app.listen(port, () => {
-    console.info(`App rodando em http://localhost:${port}`);
-});
+module.exports = app;
