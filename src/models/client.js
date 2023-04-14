@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require('../config/database/index');
 const { Schema } = mongoose;
 
 const AddressSchema = new Schema({
