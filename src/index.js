@@ -1,10 +1,5 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const Client = require('./models/client');
-
-const app = express();
-
-app.use(bodyParser.json());
+const Client = require('../models/client');
+const app = require('./config/app');
 
 // Lista todos os clientes
 app.get('/', async (req, res) => {
@@ -26,12 +21,14 @@ app.post('/', async (req, res) => {
     enderecos: req.body.enderecos
   });
 
+  
+
   try {
     const newClient = await client.save();
     res.status(201).json(newClient);
   } catch (err) {
     res.status(400).json({ message: err.message });
-  }
+  } 
 });
 
 // Lista um cliente específico
@@ -90,3 +87,7 @@ async function getClient(req, res, next) {
 }
 
 module.exports = app;
+
+app.listen(3000, () => {
+  console.info(`App rodando em http://localhost:` + 3000);
+});
